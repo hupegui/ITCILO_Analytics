@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Hierarchy in Social Protection Employment - Executive Presentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        descriptive: '#3b82f6',
+                        diagnostic: '#f59e0b',
+                        predictive: '#8b5cf6',
+                        prescriptive: '#10b981'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js for Interactive Data Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-panel-light {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .glow-descriptive { box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.3); }
+        .glow-diagnostic { box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.3); }
+        .glow-predictive { box-shadow: 0 0 25px -5px rgba(139, 92, 246, 0.3); }
+        .glow-prescriptive { box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3); }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+        /* Auditorium Large Screen Mode Overrides */
+        .auditorium-mode {
+            font-size: 1.15rem;
+        }
+        .auditorium-mode h1 { font-size: 3.25rem !important; }
+        .auditorium-mode h2 { font-size: 2.25rem !important; }
+        .auditorium-mode h3 { font-size: 1.75rem !important; }
+        .auditorium-mode .stat-value { font-size: 3.5rem !important; }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(99, 102, 241, 0.4); }
+            50% { border-color: rgba(99, 102, 241, 0.9); }
+        }
+        .animate-pulse-border { animation: pulse-border 3s infinite; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen transition-colors duration-300 flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800 px-6 py-4 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-gradient-to-br from-brand-600 to-indigo-800 rounded-xl shadow-lg text-white">
+                    <i class="fa-solid fa-chart-line text-2xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-500/20 text-brand-300 border border-brand-500/30">
+                            Social Security Org Analytics
+                        </span>
+                        <span id="current-mode-tag" class="text-xs font-mono text-slate-400">
+                            [ Interactive Lab Mode ]
+                        </span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">
+                        Employment in Social Protection: The 4 Analytics Pillars
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Toolbar Controls -->
+            <div class="flex items-center gap-3">
+                <!-- Presenter / Auditorium Mode Toggle -->
+                <button id="btn-presenter-mode" onclick="togglePresenterMode()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 flex items-center space-x-2 transition-all">
+                    <i class="fa-solid fa-desktop text-brand-400"></i>
+                    <span>Auditorium Stage View</span>
+                </button>
+
+                <!-- High Contrast / Theme Toggle -->
+                <button id="btn-theme-toggle" onclick="toggleTheme()" class="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all">
+                    <i class="fa-solid fa-sun text-amber-400" id="theme-icon"></i>
+                </button>
+
+                <!-- Quick Walkthrough Controls (Auditorium Slide Nav) -->
+                <div class="hidden lg:flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1 space-x-1">
+                    <button onclick="navigateSlide('prev')" class="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <span id="slide-indicator" class="px-3 text-xs font-mono font-medium text-slate-300">
+                        Slide 1 / 5
+                    </span>
+                    <button onclick="navigateSlide('next')" class="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-8">
+
+        <!-- Executive Narrative Banner / Context Header -->
+        <section class="glass-panel rounded-2xl p-6 sm:p-8 relative overflow-hidden border border-slate-800">
+            <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-brand-600/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative z-10 max-w-4xl space-y-3">
+                <div class="flex items-center space-x-2 text-brand-400 font-semibold text-xs uppercase tracking-wider">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>National Social Security Administration • Human Capital & Workforce Strategy</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    Optimizing the Frontline Workforce Delivering Social Safety Nets
+                </h2>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    Social Protection organizations face unprecedented demand spikes, changing demographics, and complex case dynamics. This analytical framework demonstrates how moving from <strong class="text-descriptive font-semibold">Descriptive Metrics</strong> to <strong class="text-prescriptive font-semibold">Prescriptive Optimization</strong> empowers leadership to align workforce staffing, reduce caseworker burnout, and ensure timely social benefit disbursements.
+                </p>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="flex justify-between items-end flex-wrap gap-2">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-stairs text-brand-400"></i>
+                        The Data Analytics Hierarchy in Social Security
+                    </h3>
+                    <p class="text-slate-400 text-xs sm:text-sm">Click any pillar to focus deep-dive insights across the organization.</p>
+                </div>
+                <div class="text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                    Axis: Value Added vs. Organizational Complexity
+                </div>
+            </div>
+
+            <!-- The 4 Analytics Cards Matrix -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Pillar 1: Descriptive -->
+                <div id="card-descriptive" onclick="selectPillar('descriptive')" class="group cursor-pointer rounded-2xl glass-panel p-5 border-l-4 border-l-descriptive hover:bg-slate-800/80 transition-all duration-300 transform hover:-translate-y-1 glow-descriptive relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="p-3 bg-blue-500/10 text-descriptive rounded-xl text-lg font-bold">01</span>
+                        <span class="text-xs font-mono uppercase tracking-wider text-descriptive font-semibold px-2 py-1 bg-blue-500/10 rounded">Past & Present</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-white group-hover:text-descriptive transition-colors">Descriptive Analytics</h4>
+                    <p class="text-xs font-bold text-slate-400 mb-3">"What happened?"</p>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Baseline counts of social protection staff, caseloads per caseworker, regional staffing distribution, and historical benefit processing speeds.
+                    </p>
+                    <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
+                        <span>Staff Metric:</span>
+                        <span class="text-white font-bold">4,850 Personnel</span>
+                    </div>
+                </div>
+
+                <!-- Pillar 2: Diagnostic -->
+                <div id="card-diagnostic" onclick="selectPillar('diagnostic')" class="group cursor-pointer rounded-2xl glass-panel p-5 border-l-4 border-l-diagnostic hover:bg-slate-800/80 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="p-3 bg-amber-500/10 text-diagnostic rounded-xl text-lg font-bold">02</span>
+                        <span class="text-xs font-mono uppercase tracking-wider text-diagnostic font-semibold px-2 py-1 bg-amber-500/10 rounded">Root Cause</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-white group-hover:text-diagnostic transition-colors">Diagnostic Analytics</h4>
+                    <p class="text-xs font-bold text-slate-400 mb-3">"Why did it happen?"</p>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Uncovering root causes behind disability claim backlogs, identifying correlations between caseworker overtime, complexity, and resignation rates.
+                    </p>
+                    <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
+                        <span>Main Bottleneck:</span>
+                        <span class="text-amber-400 font-bold">Manual Audits (42%)</span>
+                    </div>
+                </div>
+
+                <!-- Pillar 3: Predictive -->
+                <div id="card-predictive" onclick="selectPillar('predictive')" class="group cursor-pointer rounded-2xl glass-panel p-5 border-l-4 border-l-predictive hover:bg-slate-800/80 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="p-3 bg-purple-500/10 text-predictive rounded-xl text-lg font-bold">03</span>
+                        <span class="text-xs font-mono uppercase tracking-wider text-predictive font-semibold px-2 py-1 bg-purple-500/10 rounded">Forecasting</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-white group-hover:text-predictive transition-colors">Predictive Analytics</h4>
+                    <p class="text-xs font-bold text-slate-400 mb-3">"What will happen?"</p>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        Forecasting future social protection demand, retirement waves among senior case assessors, and peak claims during economic stress over 1-5 years.
+                    </p>
+                    <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
+                        <span>5-Yr Retirement:</span>
+                        <span class="text-purple-400 font-bold">28.4% Staff</span>
+                    </div>
+                </div>
+
+                <!-- Pillar 4: Prescriptive -->
+                <div id="card-prescriptive" onclick="selectPillar('prescriptive')" class="group cursor-pointer rounded-2xl glass-panel p-5 border-l-4 border-l-prescriptive hover:bg-slate-800/80 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="p-3 bg-emerald-500/10 text-prescriptive rounded-xl text-lg font-bold">04</span>
+                        <span class="text-xs font-mono uppercase tracking-wider text-prescriptive font-semibold px-2 py-1 bg-emerald-500/10 rounded">Optimization</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-white group-hover:text-prescriptive transition-colors">Prescriptive Analytics</h4>
+                    <p class="text-xs font-bold text-slate-400 mb-3">"What should we do?"</p>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                        AI-guided dynamic staff re-allocation models, automated triage pathways for routine disability claims, and targeted retention initiatives.
+                    </p>
+                    <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
+                        <span>Recommended Action:</span>
+                        <span class="text-emerald-400 font-bold">Reallocate +320 FTE</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Detailed Analytics Dashboard Container -->
+        <section id="analytics-deep-dive" class="space-y-6">
+
+            <!-- Section 1: Descriptive Analytics Deep Dive -->
+            <div id="section-descriptive" class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
+                <div class="flex justify-between items-center flex-wrap gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-descriptive"></span>
+                            <span class="text-xs font-mono text-descriptive uppercase tracking-wider font-bold">Level 01 • Descriptive Analytics</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white mt-1">
+                            Current Social Protection Employment Landscape (2023–2026)
+                        </h3>
+                    </div>
+                    <div class="bg-slate-900 text-xs text-slate-300 font-mono px-3 py-1.5 rounded-lg border border-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-database text-blue-400"></i>
+                        <span>Source: Social Security HRIS & Claims System</span>
+                    </div>
+                </div>
+
+                <!-- KPI Cards for Descriptive View -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 font-medium">Total Protection Workers</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-white mt-1 stat-value">4,850</div>
+                        <span class="text-xs text-emerald-400 font-mono"><i class="fa-solid fa-arrow-up"></i> +3.2% vs 2024</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 font-medium">Avg Caseload / Worker</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-blue-400 mt-1 stat-value">342</div>
+                        <span class="text-xs text-amber-400 font-mono"><i class="fa-solid fa-triangle-exclamation"></i> Above 280 target</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 font-medium">Processing Time (Days)</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-white mt-1 stat-value">28.5</div>
+                        <span class="text-xs text-rose-400 font-mono"><i class="fa-solid fa-arrow-up"></i> +4.2 days variance</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 font-medium">Annual Staff Turnover</span>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1 stat-value">14.2%</div>
+                        <span class="text-xs text-slate-400 font-mono">Case Managers highest</span>
+                    </div>
+                </div>
+
+                <!-- Visual Charts Grid for Descriptive -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-slate-200">Workforce Distribution by Category</h4>
+                            <span class="text-xs font-mono text-slate-400">Headcount</span>
+                        </div>
+                        <div class="h-64 relative">
+                            <canvas id="chartDescriptiveDistribution"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-slate-200">Historical Monthly Claim Volume vs Staffing</h4>
+                            <span class="text-xs font-mono text-slate-400">2024–2026 Trend</span>
+                        </div>
+                        <div class="h-64 relative">
+                            <canvas id="chartDescriptiveTrend"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Diagnostic Analytics Deep Dive -->
+            <div id="section-diagnostic" class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
+                <div class="flex justify-between items-center flex-wrap gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-diagnostic"></span>
+                            <span class="text-xs font-mono text-diagnostic uppercase tracking-wider font-bold">Level 02 • Diagnostic Analytics</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white mt-1">
+                            Root Cause Breakdown: What Drives Claim Delays & Turnover?
+                        </h3>
+                    </div>
+                    <div class="bg-slate-900 text-xs text-slate-300 font-mono px-3 py-1.5 rounded-lg border border-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-network-wired text-amber-400"></i>
+                        <span>Correlation & Driver Tree Analysis</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Cause Effect Matrix Tree -->
+                    <div class="lg:col-span-2 bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <h4 class="text-sm font-bold text-slate-200">Diagnostic Driver Map: Disability Claims Delay</h4>
+                        
+                        <div class="space-y-3">
+                            <!-- Driver 1 -->
+                            <div class="p-3.5 bg-slate-800/80 rounded-lg border-l-4 border-l-amber-500 space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-white">Manual Document Verification Friction</span>
+                                    <span class="font-mono text-amber-400 font-bold">42% Impact Weight</span>
+                                </div>
+                                <p class="text-xs text-slate-300">
+                                    Caseworkers spend 3.2 hours/day verifying physical income & medical proof documents manually due to legacy system integration gaps.
+                                </p>
+                                <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-amber-500 h-full" style="width: 42%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Driver 2 -->
+                            <div class="p-3.5 bg-slate-800/80 rounded-lg border-l-4 border-l-rose-500 space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-white">Regional Staffing Mismatch</span>
+                                    <span class="font-mono text-rose-400 font-bold">31% Impact Weight</span>
+                                </div>
+                                <p class="text-xs text-slate-300">
+                                    Urban centers carry 180% higher claims per worker than rural districts, but FTE headcounts were historically frozen per district.
+                                </p>
+                                <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-rose-500 h-full" style="width: 31%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Driver 3 -->
+                            <div class="p-3.5 bg-slate-800/80 rounded-lg border-l-4 border-l-blue-500 space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-white">Onboarding & Training Deficit</span>
+                                    <span class="font-mono text-blue-400 font-bold">27% Impact Weight</span>
+                                </div>
+                                <p class="text-xs text-slate-300">
+                                    New staff require 7.5 months to achieve full processing velocity due to complex social protection regulation changes.
+                                </p>
+                                <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-blue-500 h-full" style="width: 27%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Correlation Heatmap -->
+                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-200 mb-2">Staff Overtime vs Burnout Rate</h4>
+                            <p class="text-xs text-slate-400 mb-4">Regression analysis reveals threshold beyond which resignation likelihood quadruples.</p>
+                            <div class="h-52 relative">
+                                <canvas id="chartDiagnosticScatter"></canvas>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-300 font-mono mt-2">
+                            <i class="fa-solid fa-lightbulb mr-1"></i> Diagnostic Insight: Overtime > 12 hrs/week correlates with 68% of case manager resignations within 90 days.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Predictive Analytics Deep Dive -->
+            <div id="section-predictive" class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
+                <div class="flex justify-between items-center flex-wrap gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-predictive"></span>
+                            <span class="text-xs font-mono text-predictive uppercase tracking-wider font-bold">Level 03 • Predictive Analytics</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white mt-1">
+                            5-Year Workforce Horizon & Claim Forecast (2026–2030)
+                        </h3>
+                    </div>
+                    <div class="bg-slate-900 text-xs text-slate-300 font-mono px-3 py-1.5 rounded-lg border border-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-crystal-ball text-purple-400"></i>
+                        <span>Monte Carlo & Demographic Forecasting</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Predictive Interactive Forecast Graph -->
+                    <div class="lg:col-span-2 bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-slate-200">Projected Caseload vs Staffing Gap Without Intervention</h4>
+                            <div class="flex items-center space-x-2 text-xs font-mono">
+                                <span class="flex items-center"><span class="w-2.5 h-2.5 bg-purple-500 rounded-full mr-1"></span> Claims Demand</span>
+                                <span class="flex items-center"><span class="w-2.5 h-2.5 bg-rose-500 rounded-full mr-1"></span> Effective Capacity</span>
+                            </div>
+                        </div>
+                        <div class="h-64 relative">
+                            <canvas id="chartPredictiveForecast"></canvas>
+                        </div>
+                        <div class="text-xs text-slate-400 flex justify-between items-center border-t border-slate-800 pt-3">
+                            <span>*Includes aging population claims baseline (+4.5%/yr)</span>
+                            <span class="text-purple-300 font-mono">Confidence Level: 92%</span>
+                        </div>
+                    </div>
+
+                    <!-- Scenario Risk Cards -->
+                    <div class="space-y-4">
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <span class="text-xs font-mono text-purple-400 uppercase font-semibold">Predicted Retirement Wave</span>
+                            <div class="text-xl font-bold text-white">1,378 Senior Officers</div>
+                            <p class="text-xs text-slate-300">
+                                28.4% of experienced social security case assessors are eligible for retirement before 2029.
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <span class="text-xs font-mono text-rose-400 uppercase font-semibold">Backlog Risk Warning</span>
+                            <div class="text-xl font-bold text-rose-400">+145,000 Unprocessed Claims</div>
+                            <p class="text-xs text-slate-300">
+                                If hiring remains at current baseline, average processing time will inflate from 28 to 64 days by 2028.
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl space-y-1">
+                            <div class="text-xs font-bold text-purple-300 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-nodes"></i> Predictive Metric
+                            </div>
+                            <p class="text-xs text-slate-300">
+                                Machine learning flags 4 regional hubs at critical risk of staff exhaustion within 6 months.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Prescriptive Analytics Deep Dive -->
+            <div id="section-prescriptive" class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6 glow-prescriptive">
+                <div class="flex justify-between items-center flex-wrap gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-prescriptive"></span>
+                            <span class="text-xs font-mono text-prescriptive uppercase tracking-wider font-bold">Level 04 • Prescriptive Analytics</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white mt-1">
+                            Interactive Decision Engine: Optimized Workforce Strategy
+                        </h3>
+                    </div>
+                    <div class="bg-emerald-500/10 text-xs text-emerald-400 font-mono px-3 py-1.5 rounded-lg border border-emerald-500/30 flex items-center space-x-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Prescriptive AI Policy Engine Active</span>
+                    </div>
+                </div>
+
+                <!-- Strategy Controls & Live Optimization Output -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Controls Sidebar -->
+                    <div class="lg:col-span-5 bg-slate-900/80 p-5 rounded-xl border border-slate-800 space-y-5">
+                        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-prescriptive"></i>
+                            Prescriptive Strategy Levers
+                        </h4>
+
+                        <!-- Lever 1 -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <label for="range-ai-triage" class="text-slate-300 font-medium">Automated Document AI Triage Rate</label>
+                                <span id="val-ai-triage" class="font-mono text-emerald-400 font-bold">35%</span>
+                            </div>
+                            <input id="range-ai-triage" type="range" min="0" max="80" value="35" oninput="updatePrescriptiveEngine()" class="w-full accent-emerald-500 bg-slate-700 h-2 rounded-lg cursor-pointer">
+                            <p class="text-[11px] text-slate-400">Automates baseline document verification for straightforward pension claims.</p>
+                        </div>
+
+                        <!-- Lever 2 -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <label for="range-reallocation" class="text-slate-300 font-medium">Dynamic Regional Reallocation (FTEs)</label>
+                                <span id="val-reallocation" class="font-mono text-emerald-400 font-bold">250 Staff</span>
+                            </div>
+                            <input id="range-reallocation" type="range" min="0" max="600" step="50" value="250" oninput="updatePrescriptiveEngine()" class="w-full accent-emerald-500 bg-slate-700 h-2 rounded-lg cursor-pointer">
+                            <p class="text-[11px] text-slate-400">Shift staff dynamically from low-volume to high-density social protection districts.</p>
+                        </div>
+
+                        <!-- Lever 3 -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <label for="range-reskilling" class="text-slate-300 font-medium">Cross-Training / Universal Case Managers</label>
+                                <span id="val-reskilling" class="font-mono text-emerald-400 font-bold">20% Staff</span>
+                            </div>
+                            <input id="range-reskilling" type="range" min="0" max="50" step="5" value="20" oninput="updatePrescriptiveEngine()" class="w-full accent-emerald-500 bg-slate-700 h-2 rounded-lg cursor-pointer">
+                            <p class="text-[11px] text-slate-400">Enables pension specialists to handle disability claim spikes flexibly.</p>
+                        </div>
+                    </div>
+
+                    <!-- Optimization Impact Dashboard -->
+                    <div class="lg:col-span-7 bg-slate-900/60 p-5 rounded-xl border border-slate-800 flex flex-col justify-between space-y-6">
+                        <div>
+                            <h4 class="text-sm font-bold text-white mb-4">Optimized Operational Outcomes</h4>
+
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60">
+                                    <span class="text-xs text-slate-400">Processing Delay Reduction</span>
+                                    <div id="res-delay" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1 stat-value">-12.4 Days</div>
+                                    <span class="text-[11px] text-slate-400 font-mono">Target: &lt; 15 Days Total</span>
+                                </div>
+
+                                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60">
+                                    <span class="text-xs text-slate-400">Annual Hours Saved</span>
+                                    <div id="res-hours" class="text-2xl sm:text-3xl font-extrabold text-brand-300 mt-1 stat-value">482,000 hrs</div>
+                                    <span class="text-[11px] text-slate-400 font-mono">Equivalent to +241 FTE</span>
+                                </div>
+
+                                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60">
+                                    <span class="text-xs text-slate-400">Burnout / Attrition Reduction</span>
+                                    <div id="res-attrition" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1 stat-value">-38.5%</div>
+                                    <span class="text-[11px] text-slate-400 font-mono">Retains experienced talent</span>
+                                </div>
+
+                                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60">
+                                    <span class="text-xs text-slate-400">Cost Efficiency Savings</span>
+                                    <div id="res-savings" class="text-2xl sm:text-3xl font-extrabold text-amber-300 mt-1 stat-value">$14.2M</div>
+                                    <span class="text-[11px] text-slate-400 font-mono">Reinvested into frontlines</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prescriptive Recommendation Card -->
+                        <div class="p-4 bg-emerald-950/40 border border-emerald-500/40 rounded-xl space-y-2">
+                            <div class="flex items-center justify-between text-xs font-bold text-emerald-300">
+                                <span><i class="fa-solid fa-robot mr-1"></i> Executive Action Plan Blueprint</span>
+                                <span class="font-mono bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-200">Optimal Policy Match</span>
+                            </div>
+                            <p id="prescriptive-narrative" class="text-xs text-slate-200 leading-relaxed">
+                                Deploying 35% AI Triage combined with 250 FTE regional reallocations yields maximum stability. Overtime drops below critical burn thresholds, stabilizing staff retention while maintaining 98% claim SLA compliance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Automated Triage Visual Graphic & Pipeline Analysis -->
+                <div class="bg-slate-900/90 rounded-xl p-5 border border-emerald-500/30 space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-2 border-b border-slate-800 pb-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
+                                <i class="fa-solid fa-diagram-project text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white">Prescriptive Visual: Automated AI Triage Workflow & Routing Impact</h4>
+                                <p class="text-xs text-slate-400">Live breakdown of incoming claims stream before vs. after Automated Triage execution</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs font-mono">
+                            <span class="px-2.5 py-1 rounded-md bg-emerald-900/50 text-emerald-300 border border-emerald-500/40" id="triage-status-badge">
+                                Triage Level: 35% Auto-Routed
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                        <!-- Chart View for Automated Triage -->
+                        <div class="lg:col-span-7 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-slate-300">Claim Routing & Queue Latency Breakdown (Hours per Claim)</span>
+                                <span class="text-[11px] font-mono text-emerald-400">Dynamic Live Feedback</span>
+                            </div>
+                            <div class="h-60 relative">
+                                <canvas id="chartPrescriptiveTriage"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Pipeline Step Diagram -->
+                        <div class="lg:col-span-5 space-y-3">
+                            <h5 class="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono">Prescriptive Routing Channels</h5>
+
+                            <div id="triage-tier-1" class="p-3 bg-slate-800/90 rounded-lg border-l-4 border-l-emerald-500 flex justify-between items-center text-xs">
+                                <div>
+                                    <div class="font-bold text-emerald-300 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-bolt"></i> Tier 1: Instant AI Fast-Track
+                                    </div>
+                                    <div class="text-[11px] text-slate-400">Low-risk pensions & routine renewals</div>
+                                </div>
+                                <div class="text-right">
+                                    <span id="tier-1-volume" class="font-mono font-bold text-emerald-400 text-sm">35%</span>
+                                    <div class="text-[10px] text-slate-400">~0.1 hr processing</div>
+                                </div>
+                            </div>
+
+                            <div id="triage-tier-2" class="p-3 bg-slate-800/90 rounded-lg border-l-4 border-l-blue-500 flex justify-between items-center text-xs">
+                                <div>
+                                    <div class="font-bold text-blue-300 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-user-check"></i> Tier 2: AI-Assisted Officer Review
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 font-sans">Pre-validated docs, human sign-off</div>
+                                </div>
+                                <div class="text-right">
+                                    <span id="tier-2-volume" class="font-mono font-bold text-blue-400 text-sm">45%</span>
+                                    <div class="text-[10px] text-slate-400">~2.4 hrs processing</div>
+                                </div>
+                            </div>
+
+                            <div id="triage-tier-3" class="p-3 bg-slate-800/90 rounded-lg border-l-4 border-l-amber-500 flex justify-between items-center text-xs">
+                                <div>
+                                    <div class="font-bold text-amber-300 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-user-nurse"></i> Tier 3: Complex Specialist Evaluation
+                                    </div>
+                                    <div class="text-[11px] text-slate-400">Disability medical reviews & appeals</div>
+                                </div>
+                                <div class="text-right">
+                                    <span id="tier-3-volume" class="font-mono font-bold text-amber-400 text-sm">20%</span>
+                                    <div class="text-[10px] text-slate-400">~14.0 hrs processing</div>
+                                </div>
+                            </div>
+
+                            <div class="p-2.5 bg-emerald-950/30 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-300 font-mono">
+                                <i class="fa-solid fa-circle-info mr-1"></i> <strong>Prescriptive Impact:</strong> Raising AI Triage directly shifts caseload from Tier 2 down to Tier 1, creating immediate relief for high-complexity disability specialists.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad text-brand-400"></i>
+                        Live Auditorium Stress Test Simulator
+                    </h3>
+                    <p class="text-xs text-slate-400">Test how external economic shocks impact social security employment across all 4 analytics stages simultaneously.</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="setMacroScenario('baseline')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700">
+                        Baseline Economy
+                    </button>
+                    <button onclick="setMacroScenario('recession')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-amber-300 border border-amber-500/30">
+                        Economic Surge (+30% Claims)
+                    </button>
+                    <button onclick="setMacroScenario('digital')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-emerald-300 border border-emerald-500/30">
+                        Digital Transformation Focus
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quadrant Comparative Matrix Visualizer -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="text-xs font-mono text-descriptive font-bold uppercase">1. Descriptive View (Real-time Shift)</div>
+                    <div id="sim-descriptive" class="text-sm text-slate-200 font-mono">
+                        Active Staff: 4,850 | Active Beneficiary Claims: 1,659,000 | Load/FTE: 342
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="text-xs font-mono text-diagnostic font-bold uppercase">2. Diagnostic Diagnosis</div>
+                    <div id="sim-diagnostic" class="text-sm text-slate-200 font-mono">
+                        Main Strain: Overtime hours averaging 11.4 hrs/week in disability units.
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="text-xs font-mono text-predictive font-bold uppercase">3. Predictive Forecast Signal</div>
+                    <div id="sim-predictive" class="text-sm text-slate-200 font-mono">
+                        Backlog forecast in 12 months: 42,000 delayed payouts.
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="text-xs font-mono text-prescriptive font-bold uppercase">4. Prescriptive AI Guidance</div>
+                    <div id="sim-prescriptive" class="text-sm text-emerald-300 font-mono font-bold">
+                        Recommendation: Immediately authorize 120 cross-trained temp assessors.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="presenter-controls" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 glass-panel rounded-full px-6 py-3 border border-brand-500/40 shadow-2xl z-50 flex items-center space-x-6 hidden">
+        <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-xs font-bold text-brand-300 font-mono">STAGE PRESENTATION MODE</span>
+        </div>
+
+        <div class="h-4 w-px bg-slate-700"></div>
+
+        <div class="flex items-center space-x-3">
+            <button onclick="navigateSlide('prev')" class="p-2 rounded-full hover:bg-slate-800 text-slate-200 transition">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <span id="stage-slide-num" class="text-xs font-mono font-bold text-white px-2">Slide 1/5</span>
+            <button onclick="navigateSlide('next')" class="p-2 rounded-full hover:bg-slate-800 text-slate-200 transition">
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <div class="h-4 w-px bg-slate-700"></div>
+
+        <button onclick="togglePresenterMode()" class="text-xs text-rose-400 hover:text-rose-300 font-medium">
+            Exit Stage
+        </button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500 font-mono">
+        <p>Social Protection Employment Analytics Framework • Presented for Social Security Leadership</p>
+    </footer>
+
+    <script>
+        // Global Application State
+        const state = {
+            activePillar: 'descriptive',
+            presenterMode: false,
+            darkMode: true,
+            currentSlide: 1,
+            totalSlides: 5,
+            charts: {},
+            prescriptive: {
+                aiTriage: 35,
+                reallocation: 250,
+                reskilling: 20
+            }
+        };
+
+        // Slide descriptions for auditorium stage presentation mode
+        const slides = [
+            { title: "Overview of Analytics Hierarchy", elementId: "card-descriptive" },
+            { title: "Descriptive Analytics: Current Staffing", elementId: "section-descriptive" },
+            { title: "Diagnostic Analytics: Finding Root Causes", elementId: "section-diagnostic" },
+            { title: "Predictive Analytics: Forecasting Staff Demands", elementId: "section-predictive" },
+            { title: "Prescriptive Analytics: Strategy Engine", elementId: "section-prescriptive" }
+        ];
+
+        // Initialize on DOM Ready
+        window.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            updatePrescriptiveEngine();
+        });
+
+        // Chart Initialization Functions
+        function initCharts() {
+            // Chart 1: Descriptive Distribution
+            const ctx1 = document.getElementById('chartDescriptiveDistribution').getContext('2d');
+            state.charts.distribution = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Case Managers', 'Disability Medical Assessors', 'Pension Specialists', 'Field Inspectors', 'IT & Operations Support'],
+                    datasets: [{
+                        data: [2100, 850, 950, 550, 400],
+                        backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#64748b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } }
+                    }
+                }
+            });
+
+            // Chart 2: Descriptive Monthly Trend
+            const ctx2 = document.getElementById('chartDescriptiveTrend').getContext('2d');
+            state.charts.trend = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                        {
+                            label: 'Monthly Claim Submissions (k)',
+                            data: [120, 125, 140, 138, 155, 160, 175, 168, 180, 172, 190, 205],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Active Staff Headcount',
+                            data: [4.6, 4.6, 4.7, 4.7, 4.75, 4.75, 4.8, 4.8, 4.82, 4.85, 4.85, 4.85],
+                            borderColor: '#10b981',
+                            borderDash: [5, 5],
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y1: { position: 'right', ticks: { color: '#10b981' }, grid: { drawOnChartArea: false } }
+                    },
+                    plugins: { legend: { labels: { color: '#94a3b8' } } }
+                }
+            });
+
+            // Chart 3: Diagnostic Scatter (Overtime vs Resignation)
+            const ctx3 = document.getElementById('chartDiagnosticScatter').getContext('2d');
+            state.charts.scatter = new Chart(ctx3, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Regional Social Security Offices',
+                        data: [
+                            { x: 4, y: 3.2, r: 8 },
+                            { x: 6, y: 4.1, r: 10 },
+                            { x: 8, y: 5.5, r: 12 },
+                            { x: 12, y: 14.2, r: 18 },
+                            { x: 15, y: 22.8, r: 24 },
+                            { x: 18, y: 29.1, r: 28 }
+                        ],
+                        backgroundColor: 'rgba(245, 158, 11, 0.6)',
+                        borderColor: '#f59e0b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Weekly Overtime Hours / Staff', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
+                        y: { title: { display: true, text: 'Annual Resignation Rate (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Chart 4: Predictive Forecast
+            const ctx4 = document.getElementById('chartPredictiveForecast').getContext('2d');
+            state.charts.forecast = new Chart(ctx4, {
+                type: 'line',
+                data: {
+                    labels: ['2025', '2026 Proj', '2027 Proj', '2028 Proj', '2029 Proj', '2030 Proj'],
+                    datasets: [
+                        {
+                            label: 'Projected Social Protection Claims Demand',
+                            data: [1.8, 1.95, 2.15, 2.38, 2.62, 2.90],
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Effective Staff Capacity (Retirements Factor)',
+                            data: [1.8, 1.76, 1.68, 1.55, 1.42, 1.30],
+                            borderColor: '#f43f5e',
+                            borderWidth: 2,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { title: { display: true, text: 'Millions of Claims / Year Capacity', color: '#94a3b8' }, ticks: { color: '#94a3b8' } }
+                    },
+                    plugins: { legend: { labels: { color: '#94a3b8' } } }
+                }
+            });
+
+            // Chart 5: Prescriptive AI Triage Impact Chart
+            const ctx5 = document.getElementById('chartPrescriptiveTriage').getContext('2d');
+            state.charts.prescriptiveTriage = new Chart(ctx5, {
+                type: 'bar',
+                data: {
+                    labels: ['Tier 1: AI Fast-Track', 'Tier 2: AI-Assisted', 'Tier 3: Medical/Complex'],
+                    datasets: [
+                        {
+                            label: 'Claim Processing Time (Hours)',
+                            data: [0.1, 2.4, 14.0],
+                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { title: { display: true, text: 'Avg Hours to Decision', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function selectPillar(pillar) {
+            state.activePillar = pillar;
+            
+            // Highlight active pillar card
+            ['descriptive', 'diagnostic', 'predictive', 'prescriptive'].forEach(p => {
+                const card = document.getElementById(`card-${p}`);
+                if (p === pillar) {
+                    card.classList.add(`glow-${p}`, 'border-slate-400');
+                } else {
+                    card.classList.remove(`glow-${p}`, 'border-slate-400');
+                }
+            });
+
+            // Scroll smoothly to section
+            const target = document.getElementById(`section-${pillar}`);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function updatePrescriptiveEngine() {
+            const aiTriage = parseInt(document.getElementById('range-ai-triage').value);
+            const reallocation = parseInt(document.getElementById('range-reallocation').value);
+            const reskilling = parseInt(document.getElementById('range-reskilling').value);
+
+            // Update DOM Label text
+            document.getElementById('val-ai-triage').textContent = `${aiTriage}%`;
+            document.getElementById('val-reallocation').textContent = `${reallocation} Staff`;
+            document.getElementById('val-reskilling').textContent = `${reskilling}% Staff`;
+
+            // Calculate Prescriptive Math Outcomes
+            const delayReduction = ((aiTriage * 0.22) + (reallocation * 0.02) + (reskilling * 0.15)).toFixed(1);
+            const hoursSaved = Math.round((aiTriage * 8500) + (reallocation * 400) + (reskilling * 1200));
+            const attritionReduction = ((aiTriage * 0.3) + (reallocation * 0.05) + (reskilling * 0.4)).toFixed(1);
+            const financialSavings = ((hoursSaved * 28.5) / 1000000).toFixed(1);
+
+            // Update Outcome Displays
+            document.getElementById('res-delay').textContent = `-${delayReduction} Days`;
+            document.getElementById('res-hours').textContent = `${hoursSaved.toLocaleString()} hrs`;
+            document.getElementById('res-attrition').textContent = `-${attritionReduction}%`;
+            document.getElementById('res-savings').textContent = `$${financialSavings}M`;
+
+            // Dynamic Triage Routing Pipeline Metrics
+            const tier1Vol = aiTriage; // Auto fast track
+            const tier3Vol = Math.max(15, 25 - Math.round(reskilling * 0.2)); // Complex medical evaluation
+            const tier2Vol = Math.max(0, 100 - tier1Vol - tier3Vol); // Assisted human review
+
+            document.getElementById('tier-1-volume').textContent = `${tier1Vol}%`;
+            document.getElementById('tier-2-volume').textContent = `${tier2Vol}%`;
+            document.getElementById('tier-3-volume').textContent = `${tier3Vol}%`;
+            document.getElementById('triage-status-badge').textContent = `Triage Level: ${aiTriage}% Auto-Routed`;
+
+            // Update Prescriptive Triage Chart Data live
+            if (state.charts.prescriptiveTriage) {
+                const tier2Hours = Math.max(0.8, (2.8 - (aiTriage * 0.02))).toFixed(1);
+                state.charts.prescriptiveTriage.data.datasets[0].data = [0.1, parseFloat(tier2Hours), 14.0];
+                state.charts.prescriptiveTriage.update();
+            }
+
+            // Dynamic Narrative
+            const narrative = document.getElementById('prescriptive-narrative');
+            if (aiTriage > 40 && reallocation > 300) {
+                narrative.textContent = `High-automation policy with ${aiTriage}% AI Triage and ${reallocation} FTE regional reallocation. Shifting routine claims to Tier 1 instant approval frees high-capacity case managers for complex medical disability reviews.`;
+            } else if (reskilling > 30) {
+                narrative.textContent = `Agile universal caseworker strategy combined with ${aiTriage}% Automated Triage. Cross-trained officers handle residual Tier 2 workloads with high efficiency during demand surges.`;
+            } else {
+                narrative.textContent = `Balanced intervention policy (${aiTriage}% AI Triage). Reallocating staff while routing straightforward claims through automated triage lowers processing queue delays by ${delayReduction} days.`;
+            }
+        }
+
+        // Auditorium Presenter Mode Toggle
+        function togglePresenterMode() {
+            state.presenterMode = !state.presenterMode;
+            const body = document.body;
+            const controls = document.getElementById('presenter-controls');
+            const tag = document.getElementById('current-mode-tag');
+
+            if (state.presenterMode) {
+                body.classList.add('auditorium-mode');
+                controls.classList.remove('hidden');
+                tag.textContent = '[ Auditorium Stage View Active ]';
+                tag.className = 'text-xs font-mono text-emerald-400 font-bold animate-pulse';
+            } else {
+                body.classList.remove('auditorium-mode');
+                controls.classList.add('hidden');
+                tag.textContent = '[ Interactive Lab Mode ]';
+                tag.className = 'text-xs font-mono text-slate-400';
+            }
+        }
+
+        // Slide Navigation for Presenter Mode
+        function navigateSlide(direction) {
+            if (direction === 'next' && state.currentSlide < state.totalSlides) {
+                state.currentSlide++;
+            } else if (direction === 'prev' && state.currentSlide > 1) {
+                state.currentSlide--;
+            }
+
+            document.getElementById('slide-indicator').textContent = `Slide ${state.currentSlide} / ${state.totalSlides}`;
+            document.getElementById('stage-slide-num').textContent = `Slide ${state.currentSlide}/${state.totalSlides}`;
+
+            const slide = slides[state.currentSlide - 1];
+            if (slide && slide.elementId) {
+                const el = document.getElementById(slide.elementId);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Macro Scenario Preset Trigger
+        function setMacroScenario(type) {
+            const simDescriptive = document.getElementById('sim-descriptive');
+            const simDiagnostic = document.getElementById('sim-diagnostic');
+            const simPredictive = document.getElementById('sim-predictive');
+            const simPrescriptive = document.getElementById('sim-prescriptive');
+
+            if (type === 'recession') {
+                simDescriptive.textContent = "Active Staff: 4,850 | Active Beneficiary Claims: 2,450,000 (+48%) | Load/FTE: 505";
+                simDiagnostic.textContent = "Critical Bottleneck: Unemployment benefit applications overwhelmed intake officers by 210%.";
+                simPredictive.textContent = "Backlog Forecast in 12 Months: 185,000 pending claims without emergency FTE injection.";
+                simPrescriptive.textContent = "Recommendation: Authorize 450 temporary surge workers + set AI Triage to 60%.";
+            } else if (type === 'digital') {
+                simDescriptive.textContent = "Active Staff: 4,850 | Self-Service Portal Adoption: 68% | Digital Claims: 1,120,000";
+                simDiagnostic.textContent = "Friction Shift: Manual verification reduced; primary delay moved to complex medical appeals.";
+                simPredictive.textContent = "Capacity Surplus: 18% of routine processing capacity freed for complex case management.";
+                simPrescriptive.textContent = "Recommendation: Re-skill 300 routine processors into specialized disability case officers.";
+            } else {
+                simDescriptive.textContent = "Active Staff: 4,850 | Active Beneficiary Claims: 1,659,000 | Load/FTE: 342";
+                simDiagnostic.textContent = "Main Strain: Overtime hours averaging 11.4 hrs/week in disability units.";
+                simPredictive.textContent = "Backlog forecast in 12 months: 42,000 delayed payouts.";
+                simPrescriptive.textContent = "Recommendation: Immediately authorize 120 cross-trained temp assessors.";
+            }
+        }
+
+        // Theme Switcher for Auditorium Lighting Adjustments
+        function toggleTheme() {
+            state.darkMode = !state.darkMode;
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+
+            if (state.darkMode) {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-amber-400';
+            } else {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon text-slate-700';
+            }
+        }
+    </script>
+</body>
+</html>
